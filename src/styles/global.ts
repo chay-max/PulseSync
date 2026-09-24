@@ -1,20 +1,11 @@
 import { StyleSheet } from 'react-native'
-
-export const colors = {
-    background: "#000000",
-    header: "#233D4D",
-    primary: "#FE7F2D",
-    text: "#EAECF0",
-    textsSecondary: "#d0d2d7"
-}
-
+import colors from '@/styles/colors'
 export const globalStyles = StyleSheet.create({
     container:{
         flex: 1,
         backgroundColor: colors.background,
         paddingTop: 60,
         alignItems: 'center',
-        margin: 0
     },
     title:{
         color: colors.text,

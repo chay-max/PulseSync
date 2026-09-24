@@ -1,21 +1,66 @@
-import { Text, View, StyleSheet, Pressable} from "react-native";
-import { Image } from "expo-image";
-import { globalStyles } from "@/styles/global";
+import { useEffect, useState } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Redirect } from 'expo-router';
+import { supabase } from '../utils/supabase';
+import { globalStyles } from '@/styles/global';
+import colors from '@/styles/colors';
 import { PulseLogo } from "@/assets/logo";
-import Block from "@/components/block";
 export default function Index() {
-  return <View style={globalStyles.container}>
-    <Text style={globalStyles.title}>{<PulseLogo></PulseLogo>}PulseSync</Text>
-    <Image source={require('@/assets/image/peoplenature.jpg')} contentFit="cover" contentPosition={"center"} style={styles.image}></Image>
-    <Text style={globalStyles.secondTitle}>A place to create your imagination for 24 hours</Text>
-    <Pressable style={globalStyles.button}><Text style={globalStyles.title}>Sign in</Text></Pressable>
-  </View>
-}
-const styles = StyleSheet.create({
-  image:{
-        height: 220,
-        width: 380,
-        borderRadius: 30,
-        overflow: 'hidden',
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Error fetching session:', error.message);
+          setIsAuthenticated(false);
+        } else {
+          setIsAuthenticated(!!session);
+        }
+      } catch (err) {
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  if (isLoading) {
+    return (
+      <>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.primary || '#FE7F2D'} />
+      </View>
+      </>
+    );
   }
+
+  if (isAuthenticated) {
+    return <Redirect href="/tabs/feed" />;
+  }
+
+  return <Redirect href="/welcome" />;
+}
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#000000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });
